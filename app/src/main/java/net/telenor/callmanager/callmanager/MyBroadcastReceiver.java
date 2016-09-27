@@ -88,6 +88,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                 }
                 else{
                     onOutgoingCallEnded(context, savedNumber, callStartTime, new Date());
+                    Toast.makeText(context, "Odbijen poziv", Toast.LENGTH_SHORT).show();
                 }
                 break;
         }

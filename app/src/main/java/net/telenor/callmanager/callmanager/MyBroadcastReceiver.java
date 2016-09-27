@@ -43,7 +43,6 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                 state = TelephonyManager.CALL_STATE_RINGING;
             }
             onCallStateChanged(context, state, number);
-            Toast.makeText(context, state, Toast.LENGTH_SHORT).show();
         }
     }
     //Derived classes should override these to respond to specific events of interest

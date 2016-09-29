@@ -26,59 +26,44 @@ import com.android.volley.toolbox.Volley;
 
 public class MainActivity extends AppCompatActivity implements Spinner.OnItemSelectedListener{
 
-    //Declaring an Spinner
     private Spinner spinner;
-
-    //An ArrayList for Spinner Items
     private ArrayList<String> brojevi;
-
-    //JSON Array
     private JSONArray result;
-
-    //TextViews to display details
-    private TextView textViewPoziv;
-    private TextView textViewSms;
+    private TextView textViewPoziv,textViewSms;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //Initializing the ArrayList
+        //Inicijalizacija liste brojeva
         brojevi = new ArrayList<String>();
 
-        //Initializing Spinner
+        //Inicijalizacija spinnera
         spinner = (Spinner) findViewById(R.id.spinner);
-
-        //Adding an Item Selected Listener to our Spinner
-        //As we have implemented the class Spinner.OnItemSelectedListener to this class iteself we are passing this to setOnItemSelectedListener
         spinner.setOnItemSelectedListener(this);
 
-        //Initializing TextViews
         textViewPoziv = (TextView) findViewById(R.id.textViewPoziv);
         textViewSms = (TextView) findViewById(R.id.textViewSms);
 
-        //This method will fetch the data from the URL
+        //pozivanje URL-a
         getData();
-
     }
 
     private void getData(){
-        //Creating a string request
         StringRequest stringRequest = new StringRequest(Config.DATA_URL,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
                         JSONObject j = null;
                         try {
-                            //Parsing the fetched Json String to JSON Object
+                            //parsiranje json stringa u json objekat
                             j = new JSONObject(response);
 
-                            //Storing the Array of JSON String to our JSON Array
+                            //JSON String u JSON Array
                             result = j.getJSONArray(Config.JSON_ARRAY);
 
-                            //Calling method getStudents to get the students from the JSON Array
-                            getStudents(result);
+                            getPhone(result);
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -87,7 +72,6 @@ public class MainActivity extends AppCompatActivity implements Spinner.OnItemSel
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-
                     }
                 });
 
@@ -98,58 +82,57 @@ public class MainActivity extends AppCompatActivity implements Spinner.OnItemSel
         requestQueue.add(stringRequest);
     }
 
-    private void getStudents(JSONArray j){
-        //Traversing through all the items in the json array
+    private void getPhone(JSONArray j){
+        //prolazak kroz ceo json array
         for(int i=0;i<j.length();i++){
             try {
-                //Getting json object
+                //json objekat
                 JSONObject json = j.getJSONObject(i);
 
-                //Adding the name of the student to array list
+                //dodavanje broja telefona u array list
                 brojevi.add(json.getString(Config.TAG_PHONE));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
-
-        //Setting adapter to show the items in the spinner
+        //popunjavanje spinnera
         spinner.setAdapter(new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_spinner_dropdown_item, brojevi));
     }
 
-    //Method to get student name of a particular position
-    private String getName(int position){
-        String name="";
+    //Status poziva za odredjeni broj
+    private String getPoziv(int position){
+        String poziv="";
         try {
             //Getting object of given index
             JSONObject json = result.getJSONObject(position);
 
-            //Fetching name from that object
-            name = json.getString(Config.TAG_POZIV);
+            //Poziv za odredjeni broj
+            poziv = json.getString(Config.TAG_POZIV);
         } catch (JSONException e) {
             e.printStackTrace();
         }
         //Returning the name
-        return name;
+        return poziv;
     }
-
-    //Doing the same with this method as we did with getName()
-    private String getCourse(int position){
-        String course="";
+    //Status sms za odredjeni broj
+    private String getSms(int position){
+        String sms="";
         try {
             JSONObject json = result.getJSONObject(position);
-            course = json.getString(Config.TAG_SMS);
+            sms = json.getString(Config.TAG_SMS);
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return course;
+        return sms;
     }
 
 
-
     public void startAlert(View view) {
+        String spinervrednost = spinner.getSelectedItem().toString();
         EditText text = (EditText) findViewById(R.id.time);
         int i = Integer.parseInt(text.getText().toString());
         Intent intent = new Intent(this, SampleAlarmReceiver.class);
+        intent.putExtra("key", spinervrednost);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this.getApplicationContext(), 234324243, intent, 0);
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
         alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + (i * 1000), pendingIntent);
@@ -157,8 +140,8 @@ public class MainActivity extends AppCompatActivity implements Spinner.OnItemSel
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        textViewPoziv.setText(getName(position));
-        textViewSms.setText(getCourse(position));
+        textViewPoziv.setText(getPoziv(position));
+        textViewSms.setText(getSms(position));
     }
 
     @Override

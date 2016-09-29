@@ -1,7 +1,8 @@
 package net.telenor.callmanager.callmanager;
 
 import android.content.Context;
-import android.widget.Toast;
+import android.content.Intent;
+import android.os.Build;
 
 import java.util.Date;
 
@@ -13,6 +14,7 @@ public class CallReceiver extends MyBroadcastReceiver {
 
     @Override
     protected void onIncomingCallStarted(Context ctx, String number, Date start) {
+
     }
 
     @Override

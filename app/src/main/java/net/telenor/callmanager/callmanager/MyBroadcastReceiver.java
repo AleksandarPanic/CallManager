@@ -1,12 +1,16 @@
 package net.telenor.callmanager.callmanager;
 
+import android.Manifest;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import android.support.v4.app.ActivityCompat;
 import android.telephony.PhoneStateListener;
+import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
 import android.widget.Toast;
 
@@ -53,13 +57,11 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
     protected void onOutgoingCallEnded(Context ctx, String number, Date start, Date end){}
     protected void onMissedCall(Context ctx, String number, Date start){}
 
-    //Deals with actual events
-
     //Incoming call-  goes from IDLE to RINGING when it rings, to OFFHOOK when it's answered, to IDLE when its hung up
     //Outgoing call-  goes from IDLE to OFFHOOK when it dials out, to IDLE when hung up
     public void onCallStateChanged(Context context, int state, String number) {
+
         if(lastState == state){
-            //No change, debounce extras
             return;
         }
         switch (state) {
@@ -67,7 +69,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                 isIncoming = true;
                 callStartTime = new Date();
                 savedNumber = number;
-                if(number.equals("+38163230664")) {
+                //if(number.equals("+38163230664")) {
                     if (Build.VERSION.SDK_INT >= 21 ) {
                         Intent answerCalintent = new Intent(context, AcceptCallActivity.class);
                         answerCalintent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
@@ -79,17 +81,28 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         context.startActivity(intent);
                     }
-                }
-                Toast.makeText(context, "Veza uspostavljena" + number , Toast.LENGTH_SHORT).show();
-                //onIncomingCallStarted(context, number, callStartTime);
+                //}
+                //Toast.makeText(context, "Veza uspostavljena" + number , Toast.LENGTH_SHORT).show();
+                onIncomingCallStarted(context, number, callStartTime);
                 break;
             case TelephonyManager.CALL_STATE_OFFHOOK:
-                //Transition of ringing->offhook are pickups of incoming calls.  Nothing done on them
+                //iz idle->offhook, veza u uspostavi
                 if(lastState != TelephonyManager.CALL_STATE_RINGING){
                     isIncoming = false;
                     callStartTime = new Date();
                     onOutgoingCallStarted(context, savedNumber, callStartTime);
-                    Toast.makeText(context, "Veza uspostavljena", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "Veza se uspostavlja", Toast.LENGTH_SHORT).show();
+                }
+                //ringing->offhook, pozvani korisnik se javio
+                else if (lastState == TelephonyManager.CALL_STATE_RINGING){
+
+                    int hasContactPermission = ActivityCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS);
+                    Toast.makeText(context, "Poziv odgovoren, veza uspostavljena", Toast.LENGTH_SHORT).show();
+                    if(hasContactPermission == PackageManager.PERMISSION_GRANTED ) {
+                        SmsManager smsManager = SmsManager.getDefault();
+                        smsManager.sendTextMessage(savedNumber, null, "Telefonski poziv uspesan", null, null);
+                        Toast.makeText(context, "Message Sent", Toast.LENGTH_LONG).show();
+                    }
                 }
                 break;
             case TelephonyManager.CALL_STATE_IDLE:
@@ -103,7 +116,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                 }
                 else{
                     onOutgoingCallEnded(context, savedNumber, callStartTime, new Date());
-                    Toast.makeText(context, "Odbijen poziv", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "Odbijen ili zavrsen poziv", Toast.LENGTH_SHORT).show();
                 }
                 break;
         }

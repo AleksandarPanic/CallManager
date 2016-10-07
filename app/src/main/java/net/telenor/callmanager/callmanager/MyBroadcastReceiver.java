@@ -86,7 +86,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                 onIncomingCallStarted(context, number, callStartTime);
                 break;
             case TelephonyManager.CALL_STATE_OFFHOOK:
-                //iz idle->offhook, veza u uspostavi
+                //iz idle->offhook, veza u uspostavi, komentar
                 if(lastState != TelephonyManager.CALL_STATE_RINGING){
                     isIncoming = false;
                     callStartTime = new Date();
